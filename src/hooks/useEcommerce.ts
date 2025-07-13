@@ -233,8 +233,8 @@ export const useEcommerce = () => {
       // 2. Création de la commande
       const orderPayload = {
         customerId,
-        packId: stepFormData.selectedPack?.id || null,
-        maintenanceId: stepFormData.selectedMaintenance?.id || null,
+        packId: formData.packId, // Utilise l'id transmis par le composant
+        maintenanceId: formData.maintenanceId, // Utilise l'id transmis par le composant
         formData: formData ? JSON.parse(JSON.stringify(formData)) : {},
         totalPrice: calculateTotal(),
         status: 'en cours de validation'

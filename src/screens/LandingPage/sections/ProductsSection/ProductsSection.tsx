@@ -106,6 +106,10 @@ export const ProductsSection = (): JSX.Element => {
               className="w-full py-3 px-4 mt-8 bg-amber-500 text-white rounded hover:bg-amber-600 font-bold"
               disabled={loading}
               onClick={async () => {
+                if (!selectedPack?.id || !selectedMaintenance?.id) {
+                  setError('Veuillez sélectionner un pack et une maintenance.');
+                  return;
+                }
                 setLoading(true);
                 setError(null);
                 try {
