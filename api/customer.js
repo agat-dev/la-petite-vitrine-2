@@ -38,6 +38,7 @@ module.exports = async (req, res) => {
     ])
     .select();
   if (error) {
+    console.error('Erreur Supabase (customer):', error.message, error);
     return res.status(500).json({ error: error.message });
   }
   const customer = data[0];
