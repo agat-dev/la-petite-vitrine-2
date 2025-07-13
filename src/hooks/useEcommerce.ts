@@ -231,9 +231,9 @@ export const useEcommerce = () => {
       // 2. Création de la commande
       const orderPayload = {
         customerId,
-        pack: stepFormData.selectedPack,
-        maintenance: stepFormData.selectedMaintenance,
-        formData, // ou les champs nécessaires
+        packId: stepFormData.selectedPack?.id || null,
+        maintenanceId: stepFormData.selectedMaintenance?.id || null,
+        formData: formData ? JSON.parse(JSON.stringify(formData)) : {},
         totalPrice: calculateTotal(),
         status: 'en cours de validation'
       };
@@ -241,33 +241,62 @@ export const useEcommerce = () => {
       if (!orderRes.id) throw new Error('Erreur création commande');
       const orderId = orderRes.id;
 
-      // 3. Création du formulaire lié à la commande
+      // 3. Création du formulaire lié à la commande (en parallèle)
       const orderFormPayload = {
         orderId,
-        ...formData,
-        packId: stepFormData.selectedPack?.id,
-        packTitle: stepFormData.selectedPack?.title,
-        packDescription: stepFormData.selectedPack?.description,
-        packFeatures: stepFormData.selectedPack?.features,
-        packDeliveryTime: stepFormData.selectedPack?.deliveryTime,
-        maintenanceId: stepFormData.selectedMaintenance?.id,
-        maintenanceTitle: stepFormData.selectedMaintenance?.title,
-        maintenanceDescription: stepFormData.selectedMaintenance?.description,
-        maintenanceFeatures: stepFormData.selectedMaintenance?.features,
-        maintenanceBillingCycle: stepFormData.selectedMaintenance?.billingCycle,
-        socialOptions: stepFormData.selectedSocialOptions?.map(opt => opt.title),
+        firstName: formData.prenom || '',
+        lastName: formData.nom || '',
+        email: formData.mail || '',
+        phone: formData.telephone || '',
+        company: formData.company || '',
+        street: formData.street || '',
+        city: formData.city || '',
+        postalCode: formData.postalCode || '',
+        country: formData.country || '',
+        packId: stepFormData.selectedPack?.id || '',
+        packTitle: stepFormData.selectedPack?.title || '',
+        packDescription: stepFormData.selectedPack?.description || '',
+        packFeatures: stepFormData.selectedPack?.features || [],
+        packDeliveryTime: stepFormData.selectedPack?.deliveryTime || '',
+        maintenanceId: stepFormData.selectedMaintenance?.id || '',
+        maintenanceTitle: stepFormData.selectedMaintenance?.title || '',
+        maintenanceDescription: stepFormData.selectedMaintenance?.description || '',
+        maintenanceFeatures: stepFormData.selectedMaintenance?.features || [],
+        maintenanceBillingCycle: stepFormData.selectedMaintenance?.billingCycle || '',
+        socialOptions: stepFormData.selectedSocialOptions?.map(opt => opt.title) || [],
+        additionalInfo: formData.additionalInfo || '',
+        budget: formData.budget || '',
+        objectif: formData.objectif || '',
+        delai: formData.delai || '',
+        referenceUrl: formData.referenceUrl || '',
+        description: formData.description || '',
+        color: formData.color || '',
+        logoUrl: formData.logoUrl || '',
+        imageUrl: formData.imageUrl || '',
+        domain: formData.domain || '',
+        cms: formData.cms || '',
+        hebergement: formData.hebergement || '',
+        paiement: formData.paiement || '',
+        livraison: formData.livraison || '',
+        produit: formData.produit || '',
+        service: formData.service || '',
+        autre: formData.autre || '',
+        besoin: formData.besoin || '',
+        fonctionnalite: formData.fonctionnalite || '',
+        rgpdAccepted: formData.rgpdAccepted || false,
         status: 'en cours de validation'
       };
-      const formRes = await fetch('/api/order_form', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderFormPayload)
-      });
+      const [formRes] = await Promise.all([
+        fetch('/api/order_form', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderFormPayload)
+        }),
+        fetchCustomerOrders()
+      ]);
       if (!formRes.ok) throw new Error('Erreur création order_form');
       const formDataRes = await formRes.json();
 
-      // Optionnel : rafraîchir les commandes
-      await fetchCustomerOrders();
       return { customer: customerRes, order: orderRes, orderForm: formDataRes };
     } catch (err) {
       setError('Impossible de finaliser la commande.');

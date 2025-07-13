@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
@@ -9,15 +8,15 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Méthode non autorisée' });
   }
-  const { customerId, pack, maintenance, formData, totalPrice } = req.body;
+  const { customerId, packId, maintenanceId, formData, totalPrice } = req.body;
   // Insère la commande dans Supabase
   const { data, error } = await supabase
     .from('orders')
     .insert([
       {
         customerId,
-        pack,
-        maintenance,
+        packId,
+        maintenanceId,
         formData,
         totalPrice,
         status: 'pending',

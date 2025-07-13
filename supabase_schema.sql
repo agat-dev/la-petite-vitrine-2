@@ -13,8 +13,8 @@ CREATE TABLE customers (
 CREATE TABLE orders (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   customerId uuid REFERENCES customers(id),
-  pack jsonb,
-  maintenance jsonb,
+  packId uuid REFERENCES packs(id),
+  maintenanceId uuid REFERENCES maintenance_options(id),
   formData jsonb,
   totalPrice numeric,
   status text,
