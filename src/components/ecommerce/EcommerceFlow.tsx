@@ -51,12 +51,9 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
 
   // Pré-sélection du pack si spécifié
   useEffect(() => {
-    console.log('Pack useEffect - preSelectedPackId:', preSelectedPackId, 'current pack:', stepFormData.selectedPack);
     if (preSelectedPackId && !stepFormData.selectedPack) {
       const pack = PACKS.find(p => p.id === preSelectedPackId);
-      console.log('Found pack:', pack);
       if (pack) {
-        console.log('Selecting pack via useEffect:', pack);
         selectPack(pack);
       }
     }
@@ -72,10 +69,6 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
     }
   }, [preSelectedMaintenanceId, stepFormData.selectedMaintenance, selectMaintenance]);
 
-  // Debug: afficher l'état actuel
-  console.log('EcommerceFlow render - currentFlow:', currentFlow);
-  console.log('EcommerceFlow render - selectedPack:', stepFormData.selectedPack?.title);
-  console.log('EcommerceFlow render - selectedMaintenance:', stepFormData.selectedMaintenance?.title);
 
   // Gestion de la connexion
   const handleLogin = () => {
@@ -108,12 +101,10 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
 
   // Navigation entre les étapes
   const handlePackSelected = () => {
-    console.log('handlePackSelected - going to maintenance-selection');
     setCurrentFlow('maintenance-selection');
   };
 
   const handleMaintenanceSelected = () => {
-    console.log('handleMaintenanceSelected - going to social-options');
     setCurrentFlow('social-options');
   };
 
@@ -238,7 +229,6 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
               <PackSelector
                 selectedPack={stepFormData.selectedPack}
                 onSelectPack={(pack) => {
-                  console.log('Pack selected:', pack.title);
                   selectPack(pack);
                   handlePackSelected();
                 }}
@@ -271,7 +261,6 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
                             : "border-amber-200 hover:border-amber-300 hover:shadow-lg bg-white"
                         )}
                         onClick={() => {
-                          console.log('Selecting maintenance:', maintenance);
                           selectMaintenance(maintenance);
                         }}
                       >
@@ -303,7 +292,6 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
                 <div className="flex justify-end">
                   <Button
                     onClick={() => {
-                      console.log('Maintenance continue button clicked');
                      setCurrentFlow('form');
                     }}
                     disabled={!stepFormData.selectedMaintenance}

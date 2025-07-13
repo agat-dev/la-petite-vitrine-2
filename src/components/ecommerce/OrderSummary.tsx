@@ -21,7 +21,6 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
   className
 }) => {
   
-  console.log('OrderSummary render - selectedPack:', selectedPack, 'selectedMaintenance:', selectedMaintenance);
   
   return (
     <Card className={cn("overflow-hidden", className)}>

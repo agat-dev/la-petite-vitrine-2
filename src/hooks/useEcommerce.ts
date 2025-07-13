@@ -14,6 +14,8 @@ export const useEcommerce = () => {
 
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<OrderData[]>([]);
+  // Ajoutez ce state pour le token
+  const [token, setToken] = useState<string | null>(null);
 
   // Charger les données depuis localStorage
   useEffect(() => {
@@ -29,15 +31,54 @@ export const useEcommerce = () => {
     }
   }, []);
 
+  // Charger le token depuis le localStorage au démarrage
+  useEffect(() => {
+    const savedToken = localStorage.getItem('token');
+    if (savedToken) setToken(savedToken);
+  }, []);
+
   // Sauvegarder les données dans localStorage
   const saveToStorage = (customerData: Customer, ordersData: OrderData[]) => {
     localStorage.setItem('customer', JSON.stringify(customerData));
     localStorage.setItem('orders', JSON.stringify(ordersData));
   };
 
+  // Sauvegarder le token dans le localStorage
+  const saveToken = (jwt: string) => {
+    setToken(jwt);
+    localStorage.setItem('token', jwt);
+  };
+
+  // Création ou connexion client via l'API
+  const registerOrLoginCustomer = async (formData: any, isLogin = false) => {
+    const endpoint = isLogin ? '/api/login' : '/api/customer';
+
+    // Mapping des champs pour le backend
+    const mappedData = {
+      email: formData.mail,
+      firstName: formData.prenom,
+      lastName: formData.nom,
+      phone: formData.telephone,
+      password: formData.password
+      // Ajoute d'autres champs si le backend les utilise
+    };
+    console.log('registerOrLoginCustomer - body envoyé:', JSON.stringify(mappedData));
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mappedData)
+    });
+    const data = await response.json();
+    if (data.token) {
+      saveToken(data.token);
+      setCustomer(data);
+      localStorage.setItem('customer', JSON.stringify(data));
+    }
+    return data;
+  };
+
   // Sélectionner un pack
   const selectPack = (pack: Pack) => {
-    console.log('Selecting pack:', pack);
     setStepFormData(prev => ({
       ...prev,
       selectedPack: pack
@@ -46,7 +87,6 @@ export const useEcommerce = () => {
 
   // Sélectionner une maintenance
   const selectMaintenance = (maintenance: MaintenanceOption) => {
-    console.log('Selecting maintenance:', maintenance);
     setStepFormData(prev => ({
       ...prev,
       selectedMaintenance: maintenance
@@ -106,42 +146,43 @@ export const useEcommerce = () => {
     return packPrice;
   };
 
-  // Créer une commande
+  // Créer une commande avec le token
   const createOrder = async (): Promise<OrderData> => {
-    if (!stepFormData.selectedPack) {
-      throw new Error('Aucun pack sélectionné');
-    }
+    if (!stepFormData.selectedPack) throw new Error('Aucun pack sélectionné');
+    if (!customer || !token) throw new Error('Client non authentifié');
 
-    const order: OrderData = {
+    const orderPayload = {
+      customerId: customer.id,
       pack: stepFormData.selectedPack,
       maintenance: stepFormData.selectedMaintenance,
       formData: stepFormData.formData,
-      totalPrice: calculateTotal(),
-      status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      totalPrice: calculateTotal()
     };
 
-    // Créer ou mettre à jour le client
-    const customerData: Customer = customer || {
-      id: Date.now().toString(),
-      email: stepFormData.formData.email,
-      firstName: stepFormData.formData.firstName,
-      lastName: stepFormData.formData.lastName,
-      company: stepFormData.formData.company,
-      phone: stepFormData.formData.phone,
-      createdAt: new Date(),
-      orders: []
-    };
-
-    customerData.orders.push(order);
-    const updatedOrders = [...orders, order];
-
-    setCustomer(customerData);
-    setOrders(updatedOrders);
-    saveToStorage(customerData, updatedOrders);
-
+    const response = await fetch('/api/order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(orderPayload)
+    });
+    const order = await response.json();
+    setOrders(prev => [...prev, order]);
+    localStorage.setItem('orders', JSON.stringify([...orders, order]));
     return order;
+  };
+
+  // Récupérer les commandes du client
+  const fetchCustomerOrders = async () => {
+    if (!customer || !token) return [];
+    const response = await fetch(`/api/customer/${customer.id}/orders`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    setOrders(data);
+    localStorage.setItem('orders', JSON.stringify(data));
+    return data;
   };
 
   // Réinitialiser le formulaire
@@ -170,9 +211,14 @@ export const useEcommerce = () => {
     return false;
   };
 
-  // Déconnexion
+  // Déconnexion complète (efface le token et les données locales)
   const logout = () => {
     setCustomer(null);
+    setToken(null);
+    setOrders([]);
+    localStorage.removeItem('customer');
+    localStorage.removeItem('token');
+    localStorage.removeItem('orders');
   };
 
   return {
@@ -180,7 +226,8 @@ export const useEcommerce = () => {
     stepFormData,
     customer,
     orders,
-    
+    token,
+
     // Actions
     selectPack,
     selectMaintenance,
@@ -194,7 +241,9 @@ export const useEcommerce = () => {
     resetForm,
     loginCustomer,
     logout,
-    
+    registerOrLoginCustomer,
+    fetchCustomerOrders,
+
     // Utilitaires
     isFormValid: stepFormData.steps.every(step => step.isCompleted) && stepFormData.selectedPack && stepFormData.selectedMaintenance,
     currentStep: stepFormData.steps[stepFormData.currentStep],

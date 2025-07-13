@@ -4,6 +4,7 @@ import { CGVPage } from './pages/CGV';
 import { MentionsLegalesPage } from './pages/MentionsLegales';
 import { PolitiqueConfidentialitePage } from './pages/PolitiqueConfidentialite';
 import { EcommercePage } from './pages/Ecommerce';
+import EspaceClientPage from './pages/espace-client';
 
 function App() {
   return (
@@ -14,7 +15,8 @@ function App() {
           <Route path="/commande" element={<EcommercePage />} />
           <Route path="/cgv" element={<CGVPage />} />
           <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
-          <Route path="/politique-confidentialite" element={<PolitiqueConfidentialitePage />} />
+          <Route path="/politique_confidentialite" element={<PolitiqueConfidentialitePage />} />
+          <Route path="/espace-client" element={<EspaceClientPage />} />
         </Routes>
       </Router>
     </div>

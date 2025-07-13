@@ -5,6 +5,8 @@ import { Button } from '../ui/button';
 import { FormStep, FormField } from '../../types/ecommerce';
 import { cn } from '../../lib/utils';
 
+import { useEcommerce } from '../../hooks/useEcommerce';
+
 interface StepFormProps {
   steps: FormStep[];
   currentStep: number;
@@ -32,6 +34,12 @@ export const StepForm: React.FC<StepFormProps> = ({
 }) => {
   const [currentStepData, setCurrentStepData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // Appel du hook à l'intérieur du composant
+  const { registerOrLoginCustomer, createOrder, stepFormData } = useEcommerce();
 
   const currentStepInfo = steps[currentStep];
 
@@ -96,18 +104,36 @@ export const StepForm: React.FC<StepFormProps> = ({
     // Effacer l'erreur si elle existe
     if (errors[fieldId]) {
       setErrors(prev => ({
-        ...prev,
+        ...prev, 
         [fieldId]: ''
       }));
     }
   };
 
   // Passer à l'étape suivante
-  const handleNext = () => {
+  const handleNext = async () => {
     if (validateCurrentStep()) {
+      // Fusionne les données du step courant dans le formData global 
       onUpdateFormData(currentStepInfo.id, currentStepData);
       setCurrentStepData({});
-      onNextStep();
+      if (isLastStep) {
+        // Ajoute un log ici pour vérifier le formData global
+        console.log('StepForm - formData envoyé:', formData);
+        setLoading(true);
+        setApiError(null);
+        setSuccess(null);
+        try {
+          await registerOrLoginCustomer(formData);
+          await createOrder();
+          setSuccess('Commande enregistrée avec succès !');
+        } catch (err) {
+          setApiError('Erreur lors de la création de la commande ou du client.');
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        onNextStep();
+      }
     }
   };
 
@@ -270,12 +296,17 @@ export const StepForm: React.FC<StepFormProps> = ({
         <CardContent className="p-8 space-y-6">
           {currentStepInfo.fields.map(renderField)}
 
+          {/* Affichage des messages d'état */}
+          {loading && <p className="text-amber-600">Enregistrement en cours...</p>}
+          {success && <p className="text-green-600 font-bold">{success}</p>}
+          {apiError && <p className="text-red-600 font-bold">{apiError}</p>}
+
           {/* Boutons de navigation */}
           <div className="flex justify-between pt-8 border-t border-amber-200">
             <Button
               variant="outline"
               onClick={handlePrev}
-              disabled={isFirstStep}
+              disabled={isFirstStep || loading}
               className="flex items-center gap-2 border-amber-300 text-amber-900 hover:bg-amber-50"
             >
               <ChevronLeftIcon className="w-4 h-4" />
@@ -285,6 +316,7 @@ export const StepForm: React.FC<StepFormProps> = ({
             <Button
               onClick={handleNext}
               className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-8 py-3 rounded-xl shadow-md"
+              disabled={loading}
             >
               {isLastStep ? 'Terminer' : 'Suivant'}
               {!isLastStep && <ChevronRightIcon className="w-4 h-4" />}
