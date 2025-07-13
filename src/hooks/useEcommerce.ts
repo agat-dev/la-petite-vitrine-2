@@ -16,6 +16,8 @@ export const useEcommerce = () => {
   const [orders, setOrders] = useState<OrderData[]>([]);
   // Ajoutez ce state pour le token
   const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Charger les données depuis localStorage
   useEffect(() => {
@@ -147,30 +149,25 @@ export const useEcommerce = () => {
   };
 
   // Créer une commande avec le token
-  const createOrder = async (): Promise<OrderData> => {
-    if (!stepFormData.selectedPack) throw new Error('Aucun pack sélectionné');
-    if (!customer || !token) throw new Error('Client non authentifié');
-
-    const orderPayload = {
-      customerId: customer.id,
-      pack: stepFormData.selectedPack,
-      maintenance: stepFormData.selectedMaintenance,
-      formData: stepFormData.formData,
-      totalPrice: calculateTotal()
-    };
-
-    const response = await fetch('/api/order', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(orderPayload)
-    });
-    const order = await response.json();
-    setOrders(prev => [...prev, order]);
-    localStorage.setItem('orders', JSON.stringify([...orders, order]));
-    return order;
+  const createOrder = async (orderData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+      });
+      if (!response.ok) throw new Error('Erreur lors de la création de la commande');
+      const newOrder = await response.json();
+      // Optionnel : rafraîchir la liste des commandes
+      await fetchCustomerOrders();
+      return newOrder;
+    } catch (err) {
+      setError('Impossible de créer la commande.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Récupérer les commandes du client
@@ -221,12 +218,72 @@ export const useEcommerce = () => {
     localStorage.removeItem('orders');
   };
 
+  // Soumettre la commande complète
+  const submitFullOrder = async (formData) => {
+    setLoading(true);
+    setError(null);
+    try {
+      // 1. Création du client
+      const customerRes = await registerOrLoginCustomer(formData);
+      if (!customerRes.id) throw new Error('Erreur création client');
+      const customerId = customerRes.id;
+
+      // 2. Création de la commande
+      const orderPayload = {
+        customerId,
+        pack: stepFormData.selectedPack,
+        maintenance: stepFormData.selectedMaintenance,
+        formData, // ou les champs nécessaires
+        totalPrice: calculateTotal(),
+        status: 'en cours de validation'
+      };
+      const orderRes = await createOrder(orderPayload);
+      if (!orderRes.id) throw new Error('Erreur création commande');
+      const orderId = orderRes.id;
+
+      // 3. Création du formulaire lié à la commande
+      const orderFormPayload = {
+        orderId,
+        ...formData,
+        packId: stepFormData.selectedPack?.id,
+        packTitle: stepFormData.selectedPack?.title,
+        packDescription: stepFormData.selectedPack?.description,
+        packFeatures: stepFormData.selectedPack?.features,
+        packDeliveryTime: stepFormData.selectedPack?.deliveryTime,
+        maintenanceId: stepFormData.selectedMaintenance?.id,
+        maintenanceTitle: stepFormData.selectedMaintenance?.title,
+        maintenanceDescription: stepFormData.selectedMaintenance?.description,
+        maintenanceFeatures: stepFormData.selectedMaintenance?.features,
+        maintenanceBillingCycle: stepFormData.selectedMaintenance?.billingCycle,
+        socialOptions: stepFormData.selectedSocialOptions?.map(opt => opt.title),
+        status: 'en cours de validation'
+      };
+      const formRes = await fetch('/api/order_form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderFormPayload)
+      });
+      if (!formRes.ok) throw new Error('Erreur création order_form');
+      const formDataRes = await formRes.json();
+
+      // Optionnel : rafraîchir les commandes
+      await fetchCustomerOrders();
+      return { customer: customerRes, order: orderRes, orderForm: formDataRes };
+    } catch (err) {
+      setError('Impossible de finaliser la commande.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     // État
     stepFormData,
     customer,
     orders,
     token,
+    loading,
+    error,
 
     // Actions
     selectPack,
@@ -243,6 +300,7 @@ export const useEcommerce = () => {
     logout,
     registerOrLoginCustomer,
     fetchCustomerOrders,
+    submitFullOrder,
 
     // Utilitaires
     isFormValid: stepFormData.steps.every(step => step.isCompleted) && stepFormData.selectedPack && stepFormData.selectedMaintenance,
