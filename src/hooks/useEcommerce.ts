@@ -14,6 +14,8 @@ export const useEcommerce = () => {
 
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<OrderData[]>([]);
+  const [packs, setPacks] = useState<Pack[]>([]);
+  const [maintenanceOptions, setMaintenanceOptions] = useState<MaintenanceOption[]>([]);
   // Ajoutez ce state pour le token
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -305,6 +307,14 @@ export const useEcommerce = () => {
     }
   };
 
+  const fetchCatalog = async () => {
+    const res = await fetch('/api/catalog');
+    const data = await res.json();
+    setPacks(data.packs);
+    setMaintenanceOptions(data.maintenanceOptions);
+  };
+  useEffect(() => { fetchCatalog(); }, []);
+
   return {
     // État
     stepFormData,
@@ -313,6 +323,8 @@ export const useEcommerce = () => {
     token,
     loading,
     error,
+    packs,
+    maintenanceOptions,
 
     // Actions
     selectPack,

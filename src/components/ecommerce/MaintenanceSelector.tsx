@@ -2,7 +2,7 @@ import React from 'react';
 import { CheckIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { MaintenanceOption } from '../../types/ecommerce';
-import { SOCIAL_OPTIONS } from '../../data/ecommerce-data';
+import { useEcommerce } from '../../hooks/useEcommerce';
 import { cn } from '../../lib/utils';
 
 interface MaintenanceSelectorProps {
@@ -16,6 +16,7 @@ export const MaintenanceSelector: React.FC<MaintenanceSelectorProps> = ({
   onSelectSocialOptions,
   className
 }) => {
+  const { maintenanceOptions } = useEcommerce();
   const handleOptionToggle = (option: MaintenanceOption) => {
     const isSelected = selectedSocialOptions.some(selected => selected.id === option.id);
     
@@ -47,7 +48,7 @@ export const MaintenanceSelector: React.FC<MaintenanceSelectorProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Options de maintenance */}
-        {SOCIAL_OPTIONS.map((maintenance) => {
+        {maintenanceOptions.map((maintenance) => {
           const isSelected = selectedSocialOptions.some(selected => selected.id === maintenance.id);
           const isDisabled = !isSelected && selectedSocialOptions.length >= 3;
           
@@ -58,9 +59,7 @@ export const MaintenanceSelector: React.FC<MaintenanceSelectorProps> = ({
                 "cursor-pointer transition-all duration-300",
                 isSelected
                   ? "ring-2 ring-amber-400 bg-amber-50"
-                  : isDisabled
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:shadow-lg hover:scale-105"
+                  : "border border-amber-200 bg-white"
               )}
               onClick={() => !isDisabled && handleOptionToggle(maintenance)}
             >
@@ -76,20 +75,17 @@ export const MaintenanceSelector: React.FC<MaintenanceSelectorProps> = ({
                 </div>
               )}
 
-              <CardHeader className="text-center pb-4">
-                <h3 className="text-xl font-bold text-blue-gray900 mb-2">
+              <CardHeader className="text-center pb-2">
+                <h3 className="text-lg font-bold text-blue-gray900 mb-1">
                   {maintenance.title}
                 </h3>
-                <div className="text-2xl font-bold text-amber-900 mb-2">
-                  {maintenance.price}€/mois
+                <div className="text-xl font-bold text-amber-900 mb-1">
+                  {maintenance.price}€
                 </div>
-              </CardHeader>
-
-              <CardContent>
-                <p className="text-blue-gray700 mb-4 text-sm">
+                <p className="text-blue-gray600 text-xs">
                   {maintenance.description}
                 </p>
-              </CardContent>
+              </CardHeader>
             </Card>
           );
         })}

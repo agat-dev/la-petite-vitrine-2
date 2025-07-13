@@ -2,7 +2,7 @@ import React from 'react';
 import { CheckIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { Pack } from '../../types/ecommerce';
-import { PACKS } from '../../data/ecommerce-data';
+import { useEcommerce } from '../../hooks/useEcommerce';
 import { cn } from '../../lib/utils';
 
 interface PackSelectorProps {
@@ -16,6 +16,7 @@ export const PackSelector: React.FC<PackSelectorProps> = ({
   onSelectPack,
   className
 }) => {
+  const { packs } = useEcommerce();
   return (
     <div className={cn("space-y-6", className)}>
       <Card className="bg-white/90 backdrop-blur-sm border-amber-200/50 shadow-lg rounded-2xl overflow-hidden">
@@ -30,7 +31,7 @@ export const PackSelector: React.FC<PackSelectorProps> = ({
 
         <CardContent className="p-8">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {PACKS.map((pack) => (
+        {packs.map((pack) => (
           <Card
             key={pack.id}
             className={cn(
