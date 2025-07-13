@@ -1,13 +1,17 @@
-const { createClient } = require("@supabase/supabase-js");
+
+import { createClient } from '@supabase/supabase-js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// api/customer.js
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 
-module.exports = async (req, res) => {
+// api/customer.js
+
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Méthode non autorisée" });
   }
@@ -48,4 +52,4 @@ module.exports = async (req, res) => {
     { expiresIn: "7d" }
   );
   res.status(200).json({ ...customer, token: customerToken });
-};
+}
