@@ -26,7 +26,7 @@ export interface FormStep {
 
 export interface FormField {
   id: string;
-  type: 'text' | 'email' | 'tel' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'file';
+  type: 'text' | 'email' | 'tel' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'file' | 'password';
   label: string;
   placeholder?: string;
   required: boolean;

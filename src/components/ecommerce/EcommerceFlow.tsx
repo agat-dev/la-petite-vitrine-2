@@ -46,7 +46,8 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
     isFormValid,
     currentStep,
     isLastStep,
-    isFirstStep
+    isFirstStep,
+    createOrUpdateCustomer // <-- ajout pour tunnel fonctionnel
   } = useEcommerce();
 
   // Pré-sélection du pack si spécifié
@@ -77,9 +78,10 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
   console.log('EcommerceFlow render - selectedPack:', stepFormData.selectedPack?.title);
   console.log('EcommerceFlow render - selectedMaintenance:', stepFormData.selectedMaintenance?.title);
 
-  // Gestion de la connexion
-  const handleLogin = () => {
-    if (loginCustomer(loginEmail)) {
+  // Gestion de la connexion (async)
+  const handleLogin = async () => {
+    const customer = await loginCustomer(loginEmail);
+    if (customer) {
       setCurrentFlow('dashboard');
       setShowLogin(false);
       setLoginEmail('');
@@ -95,9 +97,12 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
     resetForm();
   };
 
-  // Finaliser la commande
+  // Finaliser la commande : crée ou met à jour le client avant la commande
   const handleCompleteOrder = async () => {
     try {
+      // Création ou mise à jour du client avant commande
+      const { firstName, lastName, email, phone } = stepFormData.formData;
+      await createOrUpdateCustomer({ firstName, lastName, email, phone });
       await createOrder();
       alert('Commande créée avec succès !');
       setCurrentFlow('dashboard');
@@ -140,27 +145,40 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
   // Si un client est connecté et on est sur le dashboard
   if (customer && currentFlow === 'dashboard') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-gray-50">
-        <CustomerDashboard
-          customer={customer}
-          onLogout={handleLogout}
-          className="max-w-6xl mx-auto"
-        />
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-gray-50 py-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="mb-8 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-amber-200/50 flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-blue-gray900 font-heading-2">Espace client</h1>
+            <button
+              onClick={handleLogout}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-medium px-6 py-2 rounded-xl shadow"
+            >
+              Se déconnecter
+            </button>
+          </div>
+          <div className="bg-white/90 backdrop-blur-sm border-amber-200/50 shadow-lg rounded-2xl p-8">
+            <CustomerDashboard
+              customer={customer}
+              onLogout={handleLogout}
+              className="w-full"
+            />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-blue-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-gray-50 via-white to-amber-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
         {/* En-tête */}
-        <div className="flex justify-between items-center mb-8 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-amber-200/50">
+        <div className="flex justify-between items-center mb-8 bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-gray-200/50">
           <div className="flex items-center space-x-4">
             {/* Bouton retour à l'accueil */}
             <Button
               variant="outline"
               onClick={() => window.location.href = '/'}
-              className="flex items-center gap-2 border-blue-gray-300 text-blue-gray-700 hover:bg-blue-gray-50"
+              className="flex items-center gap-2 border-blue-gray-300 text-blue-gray-700 hover:bg-blue-gray-100"
             >
               <HomeIcon className="w-4 h-4" />
               Accueil
@@ -170,7 +188,7 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
               <Button
                 variant="outline"
                 onClick={goBack}
-                className="flex items-center gap-2 border-amber-300 text-amber-900 hover:bg-amber-50"
+                className="flex items-center gap-2 border-blue-gray-300 text-blue-gray900 hover:bg-blue-gray-100"
               >
                 <ArrowLeftIcon className="w-4 h-4" />
                 Retour
@@ -182,53 +200,17 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Bouton connexion */}
-            <Button
-              variant="outline"
-              onClick={() => setShowLogin(!showLogin)}
-              className="flex items-center gap-2 border-amber-300 text-amber-900 hover:bg-amber-50"
-            >
-              <UserIcon className="w-4 h-4" />
-              Espace client
-            </Button>
-
             {/* Indicateur panier */}
             {stepFormData.selectedPack && (
-              <div className="flex items-center gap-2 bg-amber-100 px-4 py-2 rounded-full border border-amber-300 shadow-md">
-                <ShoppingCartIcon className="w-4 h-4 text-amber-700" />
-                <span className="text-sm font-medium text-amber-700">
+              <div className="flex items-center gap-2 bg-blue-gray-100 px-4 py-2 rounded-full border border-blue-gray-300 shadow-md">
+                <ShoppingCartIcon className="w-4 h-4 text-blue-gray900" />
+                <span className="text-sm font-medium text-blue-gray900">
                   {calculateTotal()}€
                 </span>
               </div>
             )}
           </div>
         </div>
-
-        {/* Formulaire de connexion */}
-        {showLogin && (
-          <Card className="mb-8 bg-white/90 backdrop-blur-sm border-amber-200/50 shadow-lg rounded-2xl">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4 text-blue-gray900 font-heading-6">Connexion espace client</h3>
-              <div className="flex gap-4 items-end">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-blue-gray900 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
-                    placeholder="votre@email.com"
-                  />
-                </div>
-                <Button onClick={handleLogin} className="bg-amber-600 hover:bg-amber-700 text-white font-medium">
-                  Se connecter
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Contenu principal */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -238,7 +220,6 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
               <PackSelector
                 selectedPack={stepFormData.selectedPack}
                 onSelectPack={(pack) => {
-                  console.log('Pack selected:', pack.title);
                   selectPack(pack);
                   handlePackSelected();
                 }}
@@ -246,8 +227,8 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
             )}
 
             {currentFlow === 'maintenance-selection' && (
-              <Card className="bg-white/90 backdrop-blur-sm border-amber-200/50 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader className="bg-gradient-to-r from-amber-100 to-blue-gray-100 p-8">
+              <Card className="bg-white/95 backdrop-blur-sm border-blue-gray-200/50 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-blue-gray-100 to-amber-50 p-8">
                   <h2 className="text-3xl font-bold text-blue-gray900 mb-4 font-heading-2 text-center">
                     Choisissez votre maintenance (obligatoire)
                   </h2>
@@ -267,25 +248,24 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
                         className={cn(
                           "cursor-pointer transition-all duration-300 hover:scale-105 border-2 rounded-xl overflow-hidden",
                           isSelected
-                            ? "border-amber-400 bg-amber-50 shadow-lg"
-                            : "border-amber-200 hover:border-amber-300 hover:shadow-lg bg-white"
+                            ? "border-blue-gray-400 bg-blue-gray-50 shadow-lg"
+                            : "border-blue-gray-200 hover:border-blue-gray-300 hover:shadow-lg bg-white"
                         )}
                         onClick={() => {
-                          console.log('Selecting maintenance:', maintenance);
                           selectMaintenance(maintenance);
                         }}
                       >
                         {isSelected && (
-                          <div className="absolute top-4 right-4 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center shadow-md">
+                          <div className="absolute top-4 right-4 w-8 h-8 bg-blue-gray-400 rounded-full flex items-center justify-center shadow-md">
                             <CheckIcon className="w-4 h-4 text-white" />
                           </div>
                         )}
 
-                        <CardHeader className="text-center pb-4 bg-gradient-to-b from-white to-amber-50/30 p-6">
+                        <CardHeader className="text-center pb-4 bg-gradient-to-b from-white to-blue-gray-50/30 p-6">
                           <h3 className="text-xl font-bold text-blue-gray900 mb-2 font-heading-6">
                             {maintenance.title}
                           </h3>
-                          <div className="text-3xl font-bold text-amber-900 mb-2">
+                          <div className="text-3xl font-bold text-blue-gray900 mb-2">
                             {maintenance.price}€/mois
                           </div>
                         </CardHeader>
@@ -303,11 +283,10 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
                 <div className="flex justify-end">
                   <Button
                     onClick={() => {
-                      console.log('Maintenance continue button clicked');
                      setCurrentFlow('form');
                     }}
                     disabled={!stepFormData.selectedMaintenance}
-                    className="bg-amber-600 hover:bg-amber-700 text-white font-medium px-8 py-3 rounded-xl shadow-md"
+                    className="bg-blue-gray900 hover:bg-blue-gray700 text-white font-medium px-8 py-3 rounded-xl shadow-md"
                   >
                     Continuer
                   </Button>
@@ -333,14 +312,14 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
                 onGoToStep={goToStep}
                 isLastStep={isLastStep}
                 isFirstStep={isFirstStep}
-                className="bg-white/90 backdrop-blur-sm border-amber-200/50 shadow-lg rounded-2xl"
+                className="bg-white/95 backdrop-blur-sm border-blue-gray-200/50 shadow-lg rounded-2xl"
               />
             )}
 
             {currentFlow === 'summary' && (
               <div className="space-y-6">
-                <Card className="bg-white/90 backdrop-blur-sm border-amber-200/50 shadow-lg rounded-2xl overflow-hidden">
-                  <CardHeader className="bg-gradient-to-r from-amber-100 to-blue-gray-100 p-8">
+                <Card className="bg-white/95 backdrop-blur-sm border-blue-gray-200/50 shadow-lg rounded-2xl overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-blue-gray-100 to-amber-50 p-8">
                     <h2 className="text-3xl font-bold text-blue-gray900 mb-2 font-heading-2 text-center">
                       Finaliser votre commande
                     </h2>
@@ -358,11 +337,11 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
                         </p>
                       </div>
                       
-                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 shadow-sm">
-                        <h3 className="font-semibold text-blue-800 mb-2">
+                      <div className="bg-blue-gray-50 border border-blue-gray-200 rounded-xl p-6 shadow-sm">
+                        <h3 className="font-semibold text-blue-gray900 mb-2">
                           📧 Prochaines étapes
                         </h3>
-                        <ul className="text-blue-700 text-sm space-y-1">
+                        <ul className="text-blue-gray700 text-sm space-y-1">
                           <li>• Vous recevrez un email de confirmation</li>
                           <li>• Notre équipe vous contactera sous 24h</li>
                           <li>• Accès à votre espace client pour suivre l'avancement</li>
@@ -372,7 +351,7 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
 
                     <Button
                       onClick={handleCompleteOrder}
-                      className="w-full bg-amber-600 hover:bg-amber-700 text-white text-lg py-4 rounded-xl shadow-lg font-medium"
+                      className="w-full bg-blue-gray900 hover:bg-blue-gray700 text-white text-lg py-4 rounded-xl shadow-lg font-medium"
                     >
                       Confirmer la commande
                     </Button>
@@ -381,7 +360,7 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
                       <Button
                         variant="outline"
                         onClick={() => window.location.href = '/'}
-                        className="text-blue-gray-600 hover:text-blue-gray-800 border-blue-gray-300 hover:bg-blue-gray-50"
+                        className="text-blue-gray700 hover:text-blue-gray900 border-blue-gray-300 hover:bg-blue-gray-100"
                       >
                         Retourner à l'accueil
                       </Button>
@@ -399,7 +378,7 @@ export const EcommerceFlow: React.FC<EcommerceFlowProps> = ({
                 selectedMaintenance={stepFormData.selectedMaintenance}
                 formData={stepFormData.formData}
                 totalPrice={calculateTotal()}
-                className="bg-white/90 backdrop-blur-sm border-amber-200/50 shadow-lg rounded-2xl"
+                className="bg-white/95 backdrop-blur-sm border-blue-gray-200/50 shadow-lg rounded-2xl"
               />
             </div>
           </div>

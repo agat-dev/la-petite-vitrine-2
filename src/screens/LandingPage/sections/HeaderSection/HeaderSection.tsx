@@ -6,8 +6,6 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "../../../../components/ui/navigation-menu";
-import StyledButton from "../../../../components/ui/styled-button";
-
 export const HeaderSection = (): JSX.Element => {
   // Navigation menu items data
   const navItems = [
@@ -46,6 +44,14 @@ export const HeaderSection = (): JSX.Element => {
             ))}
           </NavigationMenuList>
         </NavigationMenu>
+
+        {/* CTA Connexion espace client */}
+        <a
+          href="/espace-client-login"
+          className="ml-4 px-5 py-2 rounded-lg bg-blue-gray900 text-white font-bold shadow hover:bg-blue-gray700 transition hidden md:inline-block"
+        >
+          Espace client
+        </a>
 
         {/* Mobile Menu Button */}
         <div className="lg:hidden p-2 cursor-pointer">

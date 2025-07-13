@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Pack, MaintenanceOption, StepFormData, OrderData, Customer } from '../types/ecommerce';
 import { DEFAULT_FORM_STEPS } from '../data/ecommerce-data';
 
+const API_URL = '/api/ecommerce';
+
 export const useEcommerce = () => {
   const [stepFormData, setStepFormData] = useState<StepFormData>({
     currentStep: 0,
@@ -15,24 +17,73 @@ export const useEcommerce = () => {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<OrderData[]>([]);
 
-  // Charger les données depuis localStorage
+  // Charger le catalogue packs/maintenance
   useEffect(() => {
-    const savedCustomer = localStorage.getItem('customer');
-    const savedOrders = localStorage.getItem('orders');
-    
-    if (savedCustomer) {
-      setCustomer(JSON.parse(savedCustomer));
-    }
-    
-    if (savedOrders) {
-      setOrders(JSON.parse(savedOrders));
-    }
+    fetch(`${API_URL}/catalog`)
+      .then(res => res.json())
+      .then(data => {
+        // Optionnel : stocker le catalogue dans le state si besoin
+      });
   }, []);
 
   // Sauvegarder les données dans localStorage
-  const saveToStorage = (customerData: Customer, ordersData: OrderData[]) => {
-    localStorage.setItem('customer', JSON.stringify(customerData));
-    localStorage.setItem('orders', JSON.stringify(ordersData));
+
+  // Créer ou mettre à jour le client
+  const createOrUpdateCustomer = async (formData: any): Promise<Customer> => {
+    // formData doit contenir password
+    const res = await fetch(`${API_URL}/customer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+    if (!res.ok) throw new Error('Erreur création client');
+    const customer = await res.json();
+    setCustomer(customer);
+    return customer;
+  };
+
+  // Connexion client
+  const loginCustomer = async (email: string, password: string): Promise<Customer | null> => {
+    const res = await fetch(`${API_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (!res.ok) return null;
+    const customer = await res.json();
+    setCustomer(customer);
+    // Récupérer les commandes du client
+    const ordersRes = await fetch(`${API_URL}/customer/${customer.id}/orders`);
+    const orders = ordersRes.ok ? await ordersRes.json() : [];
+    setOrders(orders);
+    return customer;
+  };
+
+  // Créer une commande
+  const createOrder = async (): Promise<OrderData> => {
+    if (!stepFormData.selectedPack) throw new Error('Aucun pack sélectionné');
+    if (!customer) throw new Error('Aucun client connecté');
+    const res = await fetch(`${API_URL}/order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerId: customer.id,
+        pack: stepFormData.selectedPack,
+        maintenance: stepFormData.selectedMaintenance,
+        formData: stepFormData.formData,
+        totalPrice: calculateTotal()
+      })
+    });
+    if (!res.ok) throw new Error('Erreur création commande');
+    const order = await res.json();
+    setOrders(prev => [...prev, order]);
+    return order;
+  };
+
+  // Déconnexion
+  const logout = () => {
+    setCustomer(null);
+    setOrders([]);
   };
 
   // Sélectionner un pack
@@ -107,42 +158,7 @@ export const useEcommerce = () => {
   };
 
   // Créer une commande
-  const createOrder = async (): Promise<OrderData> => {
-    if (!stepFormData.selectedPack) {
-      throw new Error('Aucun pack sélectionné');
-    }
-
-    const order: OrderData = {
-      pack: stepFormData.selectedPack,
-      maintenance: stepFormData.selectedMaintenance,
-      formData: stepFormData.formData,
-      totalPrice: calculateTotal(),
-      status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    // Créer ou mettre à jour le client
-    const customerData: Customer = customer || {
-      id: Date.now().toString(),
-      email: stepFormData.formData.email,
-      firstName: stepFormData.formData.firstName,
-      lastName: stepFormData.formData.lastName,
-      company: stepFormData.formData.company,
-      phone: stepFormData.formData.phone,
-      createdAt: new Date(),
-      orders: []
-    };
-
-    customerData.orders.push(order);
-    const updatedOrders = [...orders, order];
-
-    setCustomer(customerData);
-    setOrders(updatedOrders);
-    saveToStorage(customerData, updatedOrders);
-
-    return order;
-  };
+  // (supprimé: ancienne version createOrder)
 
   // Réinitialiser le formulaire
   const resetForm = () => {
@@ -157,31 +173,15 @@ export const useEcommerce = () => {
   };
 
   // Connexion client
-  const loginCustomer = (email: string) => {
-    // Simulation de connexion - en production, cela ferait appel à une API
-    const savedCustomer = localStorage.getItem('customer');
-    if (savedCustomer) {
-      const customerData = JSON.parse(savedCustomer);
-      if (customerData.email === email) {
-        setCustomer(customerData);
-        return true;
-      }
-    }
-    return false;
-  };
+  // (supprimé: ancienne version loginCustomer)
 
   // Déconnexion
-  const logout = () => {
-    setCustomer(null);
-  };
+  // (supprimé: ancienne version logout)
 
   return {
-    // État
     stepFormData,
     customer,
     orders,
-    
-    // Actions
     selectPack,
     selectMaintenance,
     selectSocialOptions,
@@ -194,8 +194,7 @@ export const useEcommerce = () => {
     resetForm,
     loginCustomer,
     logout,
-    
-    // Utilitaires
+    createOrUpdateCustomer,
     isFormValid: stepFormData.steps.every(step => step.isCompleted) && stepFormData.selectedPack && stepFormData.selectedMaintenance,
     currentStep: stepFormData.steps[stepFormData.currentStep],
     isLastStep: stepFormData.currentStep === stepFormData.steps.length - 1,
