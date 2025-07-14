@@ -1,4 +1,5 @@
 import { PlayIcon } from "lucide-react";
+import { CheckIcon } from "lucide-react";
 import React from "react";
 import { Card } from "../../../../components/ui/card";
 import { AnimatedSection } from "../../../../components/ui/animated-section";
@@ -21,11 +22,11 @@ export const AboutSection = (): JSX.Element => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-4 relative w-full sm:w-auto">
-            <StyledWrapper>
-              <a href="#products">
+            <a href="#products">
+              <StyledWrapper>
               Voir l'offre
-              </a>
-            </StyledWrapper>
+              </StyledWrapper>
+            </a>
             {/*}
             <div className="w-full sm:w-auto flex items-center px-2 py-3 rounded-lg hover:bg-amber-50 transition-colors duration-300 cursor-pointer">
               <PlayIcon className="w-6 h-6 text-amber-900" />
@@ -39,12 +40,18 @@ export const AboutSection = (): JSX.Element => {
       </AnimatedSection>
 
       <AnimatedSection animation="slideLeft" delay={200} className="relative w-full max-w-[486px] h-[300px] md:h-[350px] lg:h-[423px] mt-20 md:mt-8 lg:mt-0">
-        {/* Badge en haut à gauche à cheval sur le carré jaune */}
-        <div className="absolute top-[24%] -left-[4%] z-10 bg-black text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg hover:scale-110 transition-transform duration-300">
+        {/* Badge Satisfait ou remboursé en haut à gauche */}
+        <div className="absolute top-[20%] -left-[8%] z-10 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg hover:scale-110 transition-transform duration-300 flex items-center gap-1">
+          <CheckIcon className="w-4 h-4" />
+          Satisfait ou remboursé
+        </div>
+        
+        {/* Badge Livré en 5 jours en haut à droite */}
+        <div className="absolute top-[5%] right-[5%] z-10 bg-black text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg hover:scale-110 transition-transform duration-300">
           Livré en 5 jours
         </div>
         
-        {/* Badge en bas à droite à cheval sur le carré jaune */}
+        {/* Badge Résiliable en bas à droite */}
         <div className="absolute bottom-[15%] md:-right-[12%] -right-[5%] z-10 bg-amber-900 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg hover:scale-110 transition-transform duration-300">
           Résiliable à tout moment
         </div>
@@ -52,7 +59,7 @@ export const AboutSection = (): JSX.Element => {
         <Card className="relative w-full h-full border-none bg-transparent">
           <div className="relative h-full">            
             <div className="absolute right-[0%] -top-[14%] w-max p-8 rounded-[30px] bg-amber-600 text-center font-body-l font-[number:var(--body-l-font-weight)] text-white text-3xl md:text-4xl lg:text-5xl tracking-[var(--body-l-letter-spacing)] [font-style:var(--body-l-font-style)] z-50">
-              <p>290€</p><p className="mt-2 md:text-3xl text-2xl italic">+ 19€/mois</p>
+              <p>390€</p><p className="mt-2 md:text-3xl text-2xl italic">+ 9 ou 29€/mois</p>
             </div>
             <div className="absolute w-[75%] h-[85%] top-[12%] left-[12%] bg-amber-400 rounded-[30px] md:rounded-[40px] lg:rounded-[50px] transition-transform duration-700 hover:scale-105" />
             <img

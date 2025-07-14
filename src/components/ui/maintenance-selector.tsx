@@ -19,38 +19,8 @@ export const MaintenanceSelector: React.FC<MaintenanceSelectorProps> = ({
     <div className="mt-12 space-y-4">
       <div className="text-left">
         <h3 className="text-2xl font-heading-4 text-blue-gray100 mb-4">
-          Choisissez votre maintenance mensuelle (sans engagement)
         </h3>
-        <p className="text-blue-gray200 font-body-m mb-6">
-          Sélectionnez un abonnement mensuel pour la maintenance et l'animation de votre site et de vos réseaux sociaux.
-        </p>
       </div>
-
-      {/* Option "Aucune maintenance" */}
-      <div 
-        className={cn(
-          "p-4 rounded-xl bg-amber-50 border-2 cursor-pointer transition-all duration-300",
-          selectedMaintenance === null
-            ? "border-amber-400 bg-amber-50 shadow-md"
-            : "border-gray-200 hover:border-amber-200 hover:bg-amber-50"
-        )}
-        onClick={() => onSelect(null)}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="text-2xl"></div>
-            <div>
-              <h4 className="font-heading-6 text-amber-900 font-bold">Maintenance du site uniquement - 19€/mois</h4>
-              <p className="text-sm text-blue-gray600">Je souhaite une maintenance technique seulement</p>
-            </div>
-          </div>
-          {selectedMaintenance === null && (
-            <CheckIcon className="w-5 h-5 text-amber-600" />
-          )}
-        </div>
-      </div>
-
-      {/* Services de maintenance */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {maintenanceServices.map((service) => (
           <Card

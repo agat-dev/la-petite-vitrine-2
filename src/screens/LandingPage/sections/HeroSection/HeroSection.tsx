@@ -78,9 +78,9 @@ export const HeroSection = (): JSX.Element => {
         </AnimatedSection>
 
         <AnimatedSection animation="slideLeft" delay={200}>
-          <div onClick={() => setIsPopupOpen(true)} className="cursor-pointer mb-12">
-          <StyledWrapper>Voir une démo</StyledWrapper>
-          </div>
+          <button onClick={() => setIsPopupOpen(true)} className="cursor-pointer mb-12">
+            <StyledWrapper>Voir une démo</StyledWrapper>
+          </button>
         </AnimatedSection>
       </div>
 
@@ -126,13 +126,11 @@ export const HeroSection = (): JSX.Element => {
         </StaggeredContainer>
         </div>
         <div className="w-64 mx-auto md:mb-0 mb-8">
-            <StyledButton
-                className="w-full flex items-center justify-center"
-              >
-                <a href="#products" className="flex items-center">
+            <a href="#products" className="w-full flex items-center justify-center">
+              <StyledButton className="w-full flex items-center justify-center">
                 <span className="ml-2">Voir les offres</span>
-                </a>
               </StyledButton>
+            </a>
             </div>
       </div>
             {/* Demo Popup */}

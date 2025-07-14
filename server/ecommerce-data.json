@@ -1,0 +1,25 @@
+{
+  "customers": [
+    {
+      "id": "c_1752408159261",
+      "email": "test@example.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "phone": "0600000000",
+      "password": "$2b$10$pyQnP0ShCqDhxmuybUQgE.BfKWxsRUXzAANkHFopOePkDNIpneHRW",
+      "createdAt": "2025-07-13T12:02:39.261Z",
+      "orders": []
+    },
+    {
+      "id": "c_1752409645532",
+      "email": "test1@example.com",
+      "firstName": "Test1",
+      "lastName": "User1",
+      "phone": "0600000001",
+      "password": "$2b$10$FPAPkjOEaVshMti4VHQOiuzYepuA9Ne8G9akAZgrYPqJalr3PycXG",
+      "createdAt": "2025-07-13T12:27:25.532Z",
+      "orders": []
+    }
+  ],
+  "orders": []
+}
