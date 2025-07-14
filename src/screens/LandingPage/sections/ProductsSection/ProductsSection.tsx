@@ -106,30 +106,26 @@ export const ProductsSection = (): JSX.Element => {
               className="w-full py-3 px-4 mt-8 bg-amber-500 text-white rounded hover:bg-amber-600 font-bold"
               disabled={loading}
               onClick={async () => {
-                if (!selectedPack?.id || !selectedMaintenance?.id) {
+                if (!stepFormData.selectedPack?.id || !stepFormData.selectedMaintenance?.id) {
                   setError('Veuillez sélectionner un pack et une maintenance.');
                   return;
                 }
                 setLoading(true);
                 setError(null);
+                const payload = {
+                  ...stepFormData.formData,
+                  packId: stepFormData.selectedPack.id,
+                  maintenanceId: stepFormData.selectedMaintenance.id
+                };
+                console.log('submitFullOrder - orderPayload envoyé:', payload);
                 try {
-                  await submitFullOrder({
-                    ...stepFormData.formData,
-                    packId: selectedPack.id,
-                    maintenanceId: selectedMaintenance.id
-                  });
+                  await submitFullOrder(payload);
                   setFormSubmitted(true);
                 } catch (err) {
                   setError('Erreur lors de la soumission.');
                 } finally {
                   setLoading(false);
                 }
-                console.log('submitFullOrder - orderPayload envoyé:', {
-                  ...stepFormData.formData,
-                  packId: selectedPack.id,
-                  maintenanceId: selectedMaintenance.id
-                }
-                )
               }}
             >Valider ma commande</button>
           )}
