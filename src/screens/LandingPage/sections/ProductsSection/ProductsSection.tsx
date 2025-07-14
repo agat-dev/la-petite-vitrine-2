@@ -124,6 +124,12 @@ export const ProductsSection = (): JSX.Element => {
                 } finally {
                   setLoading(false);
                 }
+                console.log('submitFullOrder - orderPayload envoyé:', {
+                  ...stepFormData.formData,
+                  packId: selectedPack.id,
+                  maintenanceId: selectedMaintenance.id
+                }
+                )
               }}
             >Valider ma commande</button>
           )}
