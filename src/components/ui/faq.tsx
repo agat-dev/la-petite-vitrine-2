@@ -124,7 +124,7 @@ export const FAQ = ({
                 const baseStyles = 'transition-all duration-300 hover:shadow-lg';
                 switch(type) {
                   case 'hero':
-                    return `bg-white shadow-md ${baseStyles}`;
+                    return `bg-green-100 shadow-md ${baseStyles}`;
                   case 'tall':
                     return `bg-indigo-100 shadow-md ${baseStyles}`;
                   case 'wide':
@@ -209,13 +209,13 @@ export const FAQ = ({
                 const baseStyles = 'transition-all duration-700';
                 switch(type) {
                   case 'hero':
-                    return `bg-amber-900 shadow-lg ${baseStyles}`;
+                    return `bg-yellow-100 shadow-lg ${baseStyles}`;
                   case 'tall':
                     return `bg-indigo-100 shadow-md ${baseStyles}`;
                   case 'wide':
                     return `bg-pink-100 shadow-md ${baseStyles}`;
                   case 'square':
-                    return `bg-blue-gray200 shadow-md ${baseStyles}`;
+                    return `bg-yellow-100 shadow-md ${baseStyles}`;
                   case 'large':
                     return `bg-green-100 shadow-lg ${baseStyles}`;
                   case 'medium':
