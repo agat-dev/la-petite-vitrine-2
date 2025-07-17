@@ -7,6 +7,7 @@ import { EcommercePage } from './pages/Ecommerce';
 import { LoginPage } from './pages/Login';
 import { AuthProvider } from './components/auth/AuthProvider';
 import { Success } from './pages/Success';
+import EmailTestPage from './pages/email-test';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
             <Route path="/politique-confidentialite" element={<PolitiqueConfidentialitePage />} />
             <Route path="/success" element={<Success />} />
+            <Route path="/email-test" element={<EmailTestPage />} />
           </Routes>
         </Router>
       </div>
