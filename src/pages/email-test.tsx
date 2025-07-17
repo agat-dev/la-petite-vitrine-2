@@ -28,13 +28,21 @@ export default function EmailTestPage() {
         }),
       });
       setLogs((prev) => [...prev, `🔄 Statut HTTP: ${res.status}`]);
-      const data = await res.json();
-      setLogs((prev) => [...prev, `📬 Réponse: ${JSON.stringify(data)}`]);
-      setResult(data);
-      if (data.success) {
-        setLogs((prev) => [...prev, '✅ Email envoyé avec succès !']);
-      } else {
-        setLogs((prev) => [...prev, '❌ Échec de l\'envoi.']);
+      let data;
+      try {
+        data = await res.json();
+        setLogs((prev) => [...prev, `📬 Réponse: ${JSON.stringify(data)}`]);
+        setResult(data);
+        if (data.success) {
+          setLogs((prev) => [...prev, '✅ Email envoyé avec succès !']);
+        } else {
+          setLogs((prev) => [...prev, '❌ Échec de l\'envoi.']);
+        }
+      } catch (jsonErr) {
+        const rawText = await res.text();
+        setLogs((prev) => [...prev, `❗ Erreur JSON: ${jsonErr instanceof Error ? jsonErr.message : 'Erreur inconnue'}`]);
+        setLogs((prev) => [...prev, `📄 Contenu brut de la réponse: ${rawText}`]);
+        setResult({ error: 'Erreur JSON', raw: rawText });
       }
     } catch (err) {
       let errorMsg = 'Erreur inconnue';
